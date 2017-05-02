@@ -1,36 +1,49 @@
-// TODO: must insert at right place
-function insert<A>(a: A, xs: A[]): A[] {
-    let xss = xs.slice();
-    xss.push(a);
-    return xss;
+function insert<K, V>(a: [K, V], as: [K, V][]): [K, V][] {
+    let i = 0;
+    while (i < as.length && a[0] > as[i][0]) i++;
+
+    console.log(i);
+
+    let as_ = as.slice();
+    as_.splice(i, 0, a);
+    return as_;
 }
 
 function splitAt<A>(at: number, xs: A[]): [A[], A[]] {
-    return [[], []];
+    return [xs.slice(0, at), xs.slice(at)];
 }
 
 function cons<A>(a: A, as: A[]): A[] {
-    return [];
+    let as_ = as.slice();
+    as_.unshift(a);
+    return as_;
 }
 
 function concat<A>(a1: A[], a2: A[]): A[] {
-    return [];
+    return a1.concat(a2);
 }
 
 function tail<A>(as: A[]): A[] {
-    return [];
+    let as_ = as.slice();
+    as_.shift();
+    return as_;
 }
 
 function init<A>(as: A[]): A[] {
-    return [];
+    let as_ = as.slice();
+    as_.pop();
+    return as_;
 }
 
 function last<A>(as: A[]): A {
-    return undefined;
+    return as[as.length - 1];
 }
 
 function span<A>(pred: (A) => boolean, as: A[]): [A[], A[]] {
-    return [[], []];
+    let i = 0;
+    while (i < as.length && pred(as[i])) i++;
+
+    return splitAt(i, as);
 }
 
 // -------------------------------------------------------------------------------- 
@@ -108,7 +121,7 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
     let sz = tree.backend.getSize();
 
     if (kvs.length + 1 <= sz) {
-        tree.backend.setNode(node, new BPLeaf(insert<[K, V]>([k, v], kvs), mptr));
+        tree.backend.setNode(node, new BPLeaf(insert<K, V>([k, v], kvs), mptr));
     }
     else {
         let half = Math.floor(kvs.length / 2);
@@ -119,12 +132,12 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
         let leftnode = node;
 
         if (k < rk) {
-            lefts_ = insert<[K, V]>([k, v], lefts);
+            lefts_ = insert<K, V>([k, v], lefts);
             rights_ = cons<[K, V]>([rk, rv], rights);
         }
         else {
             lefts_ = concat<[K, V]>(lefts, [[rk, rv]]);
-            rights_ = insert<[K, V]>([k, v], rights);
+            rights_ = insert<K, V>([k, v], rights);
         }
 
         midk = rights_[0][0];
@@ -217,3 +230,19 @@ function insertLinkKps<K, V>(tree: BPTree<K, V>, node: BPNode<K, V>, leftnode: P
         }
     }
 }
+
+function test() {
+    let a: [number, number][] = [[1, 2], [3, 4]];
+    let a2: number[] = [1, 2, 3, 4, 5];
+
+    console.log(a);
+    console.log(insert<number, number>([30, 2], a));
+
+    console.log(splitAt(0, a));
+
+    console.log(cons([0, 0], a));
+
+    console.log(span((x) => x < 3, a2));
+}
+
+test();
