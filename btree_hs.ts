@@ -105,7 +105,7 @@ function memoryBackend<K, V>(): BPTreeBackend<K, V> {
         setNode: (ptr, node) => { kvs[ptr] = node; },
         createNode: (node) => { kvs[cnt] = node; return cnt++; },
         createRoot: (node) => { kvs[cnt] = node; root = cnt++; },
-        print: () => { console.log(JSON.stringify(kvs)); }
+        print: () => { console.log(root); console.log(JSON.stringify(kvs)); }
     };
 }
 
@@ -269,7 +269,7 @@ function test() {
 
     let be = memoryBackend<string, number>(), tree = new BPTree(be);
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 20; i++) {
         insert_(tree, "" + i, i);
     }
 
