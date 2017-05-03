@@ -288,19 +288,6 @@ function insequence_<K, V>(tree: BPTree<K, V>, node: Ptr): [K, V][] {
 }
 
 function test() {
-    /*
-    let a: [number, number][] = [[1, 2], [3, 4]];
-    let a2: number[] = [1, 2, 3, 4, 5];
-
-    console.log(a);
-    console.log(insert<number, number>([30, 2], a));
-
-    console.log(splitAt(0, a));
-
-    console.log(cons([0, 0], a));
-
-    console.log(span((x) => x < 3, a2));
-    */
     const eqArrs = function<A>(cmp: (a: A, b: A) => boolean, a1: A[], a2: A[]): boolean {
         if (a1.length !== a2.length) {
             return false;
@@ -335,22 +322,6 @@ function test() {
             }
         }
     }
-
-    /*
-    let xs = [1, 2, 3, 4, 1, 2, 3, 4];
-    console.log(splitAt(0, xs));
-
-    let xs_ = [[1, 1], [2, 2], [4, 4]];
-    console.log(insert([3, 0], xs_));
-
-    console.log(xs);
-    console.log(tail(xs));
-    console.log(init(xs));
-    console.log(cons(0, xs));
-    console.log(concat(xs, [4, 5, 6]));
-    console.log(last(xs));
-    console.log(span((x) => x < 3, xs));
-    */
 }
 
 test();
