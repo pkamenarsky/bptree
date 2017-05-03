@@ -108,12 +108,12 @@ function printTree<K, V>(root: Ptr, kvs: { [key: number]: BPNode<K, V> }) {
     }
 }
 
-function memoryBackend<K, V>(): BPTreeBackend<K, V> {
+function memoryBackend<K, V>(size: number): BPTreeBackend<K, V> {
     let kvs = {0: new BPLeaf([], null)}, root = 0, cnt = 1;
     return {
         root: () => { return root; },
         setRoot: (ptr) => { root = ptr; },
-        getSize: () => { return 10; },
+        getSize: () => { return size; },
         getNode: (ptr) => { return kvs[ptr]; },
         setNode: (ptr, node) => { kvs[ptr] = node; },
         createNode: (node) => { kvs[cnt] = node; return cnt++; },
@@ -301,15 +301,40 @@ function test() {
 
     console.log(span((x) => x < 3, a2));
     */
+    const eqArrs = function<A>(cmp: (a: A, b: A) => boolean, a1: A[], a2: A[]): boolean {
+        if (a1.length !== a2.length) {
+            return false;
+        }
+        else {
+            for (let i = 0; i < a1.length; i++) {
+                if (!cmp(a1[i], a2[i]))
+                    return false;
+            }
 
-    let be = memoryBackend<number, number>(), tree = new BPTree(be);
-
-    for (let i = 0; i < 20; i++) {
-        insert_(tree, i, i);
+            return true;
+        }
     }
 
-    be.print();
-    console.log(insequence(tree));
+    end:
+    for (let size = 2; size < 100; size++) {
+        for (let length = 0; length < 1000; length++) {
+            let be = memoryBackend<number, number>(4), tree = new BPTree(be), a: [number, number][] = [];
+            for (let i = 0; i < length; i++) {
+                insert_(tree, i, i);
+                a.push([i, i]);
+            }
+
+            if (eqArrs(([a, b], [c, d]) => a == c && b == d, a, insequence(tree))) {
+                console.log(`${size}, ${length}: OK`);
+            }
+            else {
+                console.log(`${size}, ${length}: FAILED`);
+                console.log(`Expected: ${a}`);
+                console.log(`Result  : ${insequence(tree)}`);
+                break end;
+            }
+        }
+    }
 
     /*
     let xs = [1, 2, 3, 4, 1, 2, 3, 4];
