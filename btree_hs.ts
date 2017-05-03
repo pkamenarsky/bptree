@@ -95,6 +95,19 @@ type BPTreeBackend<K, V> = {
     print: () => void;
 }
 
+function printTree<K, V>(root: Ptr, kvs: { [key: number]: BPNode<K, V> }) {
+    console.log(`Root: [${root}]`);
+
+    for (let [ptr, node] of Object.entries(kvs)) {
+        if (node instanceof BPInternal) {
+            console.log(`[${ptr}] N: *${node.ptr} ${node.children.map(([k, v]) => "[" + k + ", *" + v + "]")}`);
+        }
+        else if (node instanceof BPLeaf) {
+            console.log(`[${ptr}] L: ${node.kvs.map(([k, v]) => "[" + k + ", " + v + "]")}} *${node.next}`);
+        }
+    }
+}
+
 function memoryBackend<K, V>(): BPTreeBackend<K, V> {
     let kvs = {0: new BPLeaf([], null)}, root = 0, cnt = 1;
     return {
@@ -105,7 +118,7 @@ function memoryBackend<K, V>(): BPTreeBackend<K, V> {
         setNode: (ptr, node) => { kvs[ptr] = node; },
         createNode: (node) => { kvs[cnt] = node; return cnt++; },
         createRoot: (node) => { kvs[cnt] = node; root = cnt++; },
-        print: () => { console.log(root); console.log(JSON.stringify(kvs)); }
+        print: () => { printTree(root, kvs); }
     };
 }
 
@@ -141,8 +154,8 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
         tree.backend.setNode(node, new BPLeaf(insert<K, V>([k, v], kvs), mptr));
     }
     else {
-        let half = Math.floor(kvs.length / 2);
-        let [lefts, rights__] = splitAt(half - 1, kvs);
+        let half = Math.floor(sz / 2);
+        let [lefts, rights__] = splitAt(half, kvs);
         let rights = tail(rights__);
         let rk = rights__[0][0], rv = rights__[0][1];
         let lefts_: [K, V][], rights_: [K, V][];
@@ -152,6 +165,7 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
         if (k < rk) {
             lefts_ = insert<K, V>([k, v], lefts);
             rights_ = cons<[K, V]>([rk, rv], rights);
+            // rights_ = rights__;
         }
         else {
             lefts_ = concat<[K, V]>(lefts, [[rk, rv]]);
@@ -199,8 +213,8 @@ function insertLink<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], leftnode: 
             tree.backend.setNode(node, insertLinkKps(tree, nd, leftnode, k, rightnode));
         }
         else {
-            let half = Math.floor(kps.length / 2);
-            let [allllkps, rkps_] = splitAt<[K, Ptr]>(half - 1, kps);
+            let half = Math.floor(sz / 2);
+            let [allllkps, rkps_] = splitAt<[K, Ptr]>(half, kps);
             let rkps = tail(rkps_);
             let rk = rkps_[0][0];
             let rp = rkps_[0][1];
@@ -252,6 +266,27 @@ function insertLinkKps<K, V>(tree: BPTree<K, V>, node: BPNode<K, V>, leftnode: P
     }
 }
 
+function insequence<K, V>(tree: BPTree<K, V>): [K, V][] {
+    let rt = tree.backend.root();
+    return insequence_(tree, rt);
+}
+
+function insequence_<K, V>(tree: BPTree<K, V>, node: Ptr): [K, V][] {
+    let nd = tree.backend.getNode(node);
+
+    if (nd instanceof BPLeaf) {
+        if (nd.next === null) {
+            return nd.kvs;
+        }
+        else {
+            return concat(nd.kvs, insequence_(tree, nd.next));
+        }
+    }
+    else if (nd instanceof BPInternal) {
+        return insequence_(tree, nd.ptr);
+    }
+}
+
 function test() {
     /*
     let a: [number, number][] = [[1, 2], [3, 4]];
@@ -267,13 +302,35 @@ function test() {
     console.log(span((x) => x < 3, a2));
     */
 
-    let be = memoryBackend<string, number>(), tree = new BPTree(be);
+    let be = memoryBackend<number, number>(), tree = new BPTree(be);
 
-    for (let i = 0; i < 20; i++) {
-        insert_(tree, "" + i, i);
+    for (let i = 0; i < 17; i++) {
+        insert_(tree, i, i);
     }
 
     be.print();
+    console.log(insequence(tree));
+
+    insert_(tree, 17, 17);
+
+    be.print();
+    console.log(insequence(tree));
+
+    /*
+    let xs = [1, 2, 3, 4, 1, 2, 3, 4];
+    console.log(splitAt(0, xs));
+
+    let xs_ = [[1, 1], [2, 2], [4, 4]];
+    console.log(insert([3, 0], xs_));
+
+    console.log(xs);
+    console.log(tail(xs));
+    console.log(init(xs));
+    console.log(cons(0, xs));
+    console.log(concat(xs, [4, 5, 6]));
+    console.log(last(xs));
+    console.log(span((x) => x < 3, xs));
+    */
 }
 
 test();
