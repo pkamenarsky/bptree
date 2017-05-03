@@ -113,7 +113,7 @@ function memoryBackend<K, V>(): BPTreeBackend<K, V> {
     return {
         root: () => { return root; },
         setRoot: (ptr) => { root = ptr; },
-        getSize: () => { return 4; },
+        getSize: () => { return 10; },
         getNode: (ptr) => { return kvs[ptr]; },
         setNode: (ptr, node) => { kvs[ptr] = node; },
         createNode: (node) => { kvs[cnt] = node; return cnt++; },
@@ -244,7 +244,7 @@ function insertLink<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], leftnode: 
             let rightp = tree.backend.createNode(right);
 
             if (path.length == 0) {
-                tree.backend.createNode(new BPInternal(leftp, [[midkey, rightp]]));
+                tree.backend.createRoot(new BPInternal(leftp, [[midkey, rightp]]));
             }
             else {
                 insertLink(tree, path[0], tail(path), leftp, midkey, rightp);
@@ -304,14 +304,9 @@ function test() {
 
     let be = memoryBackend<number, number>(), tree = new BPTree(be);
 
-    for (let i = 0; i < 17; i++) {
+    for (let i = 0; i < 20; i++) {
         insert_(tree, i, i);
     }
-
-    be.print();
-    console.log(insequence(tree));
-
-    insert_(tree, 17, 17);
 
     be.print();
     console.log(insequence(tree));
