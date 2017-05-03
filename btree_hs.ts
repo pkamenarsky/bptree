@@ -155,9 +155,7 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
     }
     else {
         let half = Math.floor(sz / 2);
-        let [lefts, rights__] = splitAt(half, kvs);
-        let rights = tail(rights__);
-        let rk = rights__[0][0], rv = rights__[0][1];
+        let [lefts, [[rk, rv], ...rights]] = splitAt(half, kvs);
         let lefts_: [K, V][], rights_: [K, V][];
         let midk: K;
         let leftnode = node;
@@ -165,7 +163,6 @@ function insertLeaf<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, v: V
         if (k < rk) {
             lefts_ = insert<K, V>([k, v], lefts);
             rights_ = cons<[K, V]>([rk, rv], rights);
-            // rights_ = rights__;
         }
         else {
             lefts_ = concat<[K, V]>(lefts, [[rk, rv]]);
@@ -191,12 +188,12 @@ function insertInternal<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], k: K, 
         insert__(tree, lp, cons(node, path), k, v);
     }
     else {
-        let kps = tail(kps_);
-        if (k < kps_[0][0]) {
+        let [[rk, rp], ...kps] = kps_;
+        if (k < rk) {
             insert__(tree, lp, cons(node, path), k, v);
         }
         else {
-            insertInternal(tree, node, path, k, v, kps_[0][1], kps);
+            insertInternal(tree, node, path, k, v, rp, kps);
         }
     }
 }
@@ -214,12 +211,9 @@ function insertLink<K, V>(tree: BPTree<K, V>, node: Ptr, path: Ptr[], leftnode: 
         }
         else {
             let half = Math.floor(sz / 2);
-            let [allllkps, rkps_] = splitAt<[K, Ptr]>(half, kps);
-            let rkps = tail(rkps_);
-            let rk = rkps_[0][0];
-            let rp = rkps_[0][1];
+            let [allllkps, [[rk, rp], ...rkps]] = splitAt<[K, Ptr]>(half, kps);
             let lkps = init(allllkps);
-            let lrk = last(allllkps)[0], lrp = last(allllkps)[1];
+            let [lrk, lrp] = last(allllkps);
             let left: BPNode<K, V>, midkey: K, right: BPNode<K, V>;
 
             if (k < lrk) {
@@ -259,9 +253,8 @@ function insertLinkKps<K, V>(tree: BPTree<K, V>, node: BPNode<K, V>, leftnode: P
             return new BPInternal(node.ptr, cons<[K, Ptr]>([k, rightnode], node.children));
         }
         else {
-            let [lkps, rkps_] = span<[K, Ptr]>(([_, n]) => n !== leftnode, node.children);
-            let rkps = tail(rkps_);
-            return new BPInternal(node.ptr, concat<[K, Ptr]>(lkps, cons<[K, Ptr]>(rkps_[0], cons<[K, Ptr]>([k, rightnode], rkps))));
+            let [lkps, [rkn, ...rkps]] = span<[K, Ptr]>(([_, n]) => n !== leftnode, node.children);
+            return new BPInternal(node.ptr, concat<[K, Ptr]>(lkps, cons<[K, Ptr]>(rkn, cons<[K, Ptr]>([k, rightnode], rkps))));
         }
     }
 }
